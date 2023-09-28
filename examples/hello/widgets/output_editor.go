@@ -14,6 +14,8 @@ import (
 type (
 	// OutputEditor output readonly view
 	OutputEditor struct {
+		w *runWidget.Editor
+
 		data OutputEditorData
 	}
 
@@ -29,7 +31,13 @@ const (
 var _ runWidget.Item = &HelloEditor{}
 
 func NewOutputEditor() *OutputEditor {
-	return &OutputEditor{}
+	return &OutputEditor{
+		w: runWidget.NewEditor(
+			&widget.Editor{
+				ReadOnly: true,
+			},
+		),
+	}
 }
 
 func (l *OutputEditor) ID() string {
@@ -38,15 +46,9 @@ func (l *OutputEditor) ID() string {
 
 func (l *OutputEditor) Widget(th *material.Theme) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
-		// workaround: for some reason SetText causes panic when editor used for output
-		// recreate widget.Editor on redraw
-		w := &widget.Editor{
-			ReadOnly: true,
-		}
+		l.w.SetText(l.data.Value)
 
-		w.SetText(l.data.Value)
-
-		e := material.Editor(th, w, "")
+		e := material.Editor(th, l.w.Editor(), "")
 
 		border := widget.Border{Color: color.NRGBA{A: 0xFF, R: 0xFF}, CornerRadius: unit.Dp(4), Width: unit.Dp(2)}
 
